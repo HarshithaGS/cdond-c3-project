@@ -11,6 +11,7 @@ commands:
             aws cloudformation delete-stack --stack-name backend-stack-${CIRCLE_WORKFLOW_ID:0:7}
             aws s3 rm s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
             aws cloudformation delete-stack --stack-name frontend-stack-${CIRCLE_WORKFLOW_ID:0:7}
+            
   # revert-migrations:
   #   description: Revert the last migration if successfully run in the current workflow.
   #   parameters:
@@ -137,29 +138,29 @@ jobs:
               --tags project=udacity-backend-${CIRCLE_WORKFLOW_ID:0:7} \
               --stack-name "backend-stack-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
-      # - run:
-      #     name: Ensure front-end infrastructure exist
-      #     command: |
-      #       aws cloudformation deploy \
-      #         --template-file .circleci/files/frontend.yml \
-      #         --tags project=udacity-frontend-${CIRCLE_WORKFLOW_ID:0:7} \
-      #         --stack-name "frontend-stack-${CIRCLE_WORKFLOW_ID:0:7}" \
-      #         --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
-      # - run:
-      #     name: Add back-end ip to ansible inventory
-      #     command: |
-      #       BACKEND_IP=$(aws ec2 describe-instances \
-      #         --filters "Name=tag:project,Values=udacity-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-      #         --query 'Reservations[*].Instances[*].PublicIpAddress' \
-      #         --output text)
-      #       echo "$BACKEND_IP" >> ~/project/.circleci/ansible/inventory.txt
-      #       cat ~/project/.circleci/ansible/inventory.txt
-      # - run: yum -y install tar gzip
-      # - persist_to_workspace:
-      #     root: ~/
-      #     paths:
-      #       - project/.circleci/ansible/inventory.txt
-      # - destroy-environment
+      - run:
+          name: Ensure front-end infrastructure exist
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/frontend.yml \
+              --tags project=udacity-frontend-${CIRCLE_WORKFLOW_ID:0:7} \
+              --stack-name "frontend-stack-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
+      - run:
+          name: Add back-end ip to ansible inventory
+          command: |
+            BACKEND_IP=$(aws ec2 describe-instances \
+              --filters "Name=tag:project,Values=udacity-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --output text)
+            echo "$BACKEND_IP" >> ~/project/.circleci/ansible/inventory.txt
+            cat ~/project/.circleci/ansible/inventory.txt
+      - run: yum -y install tar gzip
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/.circleci/ansible/inventory.txt
+      - destroy-environment
 
 #   configure-infrastructure:
 #     docker:
