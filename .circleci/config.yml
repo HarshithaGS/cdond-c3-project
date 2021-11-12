@@ -260,100 +260,41 @@ jobs:
             ansible-playbook -i inventory.txt deploy-backend.yml
       - destroy-environment
       - revert-migrations
-  # deploy-frontend:
-  #   docker:
-  #     - image: amazon/aws-cli
-  #   steps:
-  #     - checkout
-  #     - run:
-  #         name: Install dependencies
-  #         command: |
-  #           cd frontend
-  #           yum -y install tar gzip
-  #           yum install -y gcc-c++ make
-  #           yum install sudo -y
-  #           curl -sL https://rpm.nodesource.com/setup_13.x | sudo -E bash - 
-  #           yum install -y nodejs
-  #           npm install
-  #           npm run build
-  #           tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
-  #           aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
-  #     - run:
-  #         name: Get backend url
-  #         command: |
-  #           BACKEND_IP=$(aws ec2 describe-instances \
-  #             --filters "Name=tag:project,Values=udacity-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-  #             --query 'Reservations[*].Instances[*].PublicIpAddress' \
-  #             --output text)
-  #           export API_URL="http://${BACKEND_IP}:3030"
-  #           echo "${API_URL}"
-  #           cd ~/project/frontend
-  #           npm run build
-  #     - run:
-  #         name: Deploy frontend objects
-  #         command: |
-  #           cd ~/project/frontend
-  #           aws s3 cp ./dist "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive
-  #     - destroy-environment
-  #     - revert-migrations     
       
-      
-  # deploy-backend:
-  #   docker:
-  #     - image: python:3.7-alpine3.11
-  #   steps:
-  #     - checkout
-  #     - add_ssh_keys:
-  #         fingerprints: ["b2:7c:08:b7:7b:fd:cf:95:78:5d:3c:17:ea:57:c9:09"]
-  #     - attach_workspace:
-  #         at: ~/
-  #     - run:
-  #         name: Install dependencies
-  #         command: |
-  #           apk add --update ansible nodejs npm rsync 
-  #           pip install awscli
-  #     - run:
-  #         name: Deploy backend
-  #         command: |
-  #           cd ~/project/.circleci/ansible
-  #           ANSIBLE_HOST_KEY_CHECKING=False
-  #           ansible-playbook -i inventory.txt deploy-backend.yml
-  #     - destroy-environment
-  #     - revert-migrations
 
 
-  # smoke-test:
-  #   docker:
-  #     - image: python:3.7-alpine3.11
-  #   steps:
-  #     - checkout
-  #     - run:
-  #         name: Install dependencies
-  #         command: |
-  #           apk add --update curl nodejs npm
-  #           pip install awscli
-  #     - run:
-  #         name: Get backend url and Backend smoke test
-  #         command: |
-  #           BACKEND_IP=$(aws ec2 describe-instances \
-  #             --filters "Name=tag:project,Values=udacity-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-  #             --query 'Reservations[*].Instances[*].PublicIpAddress' \
-  #             --output text)
-  #           echo "${BACKEND_IP}"
-  #           curl "http://${BACKEND_IP}:3030/api/status"
-  #     - run:
-  #         name: Frontend smoke test.
-  #         command: |
-  #           URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3.us-east-2.amazonaws.com/index.html"
-  #           curl -s ${URL} | grep "Welcome"
-  #           #if curl -s ${URL} | grep "Welcome"
-  #           #then
-  #           #  return 1
-  #           #else
-  #           #  return 0
-  #           #fi
-  #     - destroy-environment
-  #     - revert-migrations
+  smoke-test:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update curl nodejs npm
+            pip install awscli
+      - run:
+          name: Get backend url and Backend smoke test
+          command: |
+            BACKEND_IP=$(aws ec2 describe-instances \
+              --filters "Name=tag:project,Values=udacity-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --output text)
+            echo "${BACKEND_IP}"
+            curl "http://${BACKEND_IP}:3030/api/status"
+      - run:
+          name: Frontend smoke test.
+          command: |
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3.us-east-2.amazonaws.com/index.html"
+            curl -s ${URL} | grep "Welcome"
+            if curl -s ${URL} | grep "Welcome"
+            then
+             return 1
+            else
+             return 0
+            fi
+      - destroy-environment
+      - revert-migrations
       
   # cloudfront-update:
   #   docker:
@@ -427,8 +368,8 @@ workflows:
           requires: [run-migrations]
       - deploy-backend:
           requires: [run-migrations]
-      # - smoke-test:
-      #     requires: [deploy-backend, deploy-frontend]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]
       # - cloudfront-update:
       #     requires: [smoke-test]
       # - cleanup:
