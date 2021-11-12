@@ -311,7 +311,7 @@ jobs:
           name: Update cloudfront distribution
           command: |
             cd ~/project/.circleci/files
-            OldWorkflowID=$(aws cloudformation \
+            WorkflowID=$(aws cloudformation \
               list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
               --no-paginate --output text)
             curl -H "Content-Type: text/plain" -H "token: f239cfc4-3bf0-4336-90b3-b83abd234570" --request PUT --data "$OldWorkflowID" https://api.memstash.io/values/WorkflowID
