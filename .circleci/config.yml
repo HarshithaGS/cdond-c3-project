@@ -21,13 +21,12 @@ commands:
           command: |
             SUCCESS=$(curl -H "token: f239cfc4-3bf0-4336-90b3-b83abd234570" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID})
             echo $SUCCESS
-            if[["$SUCCESS"=="Success"]]
+            if(($SUCCESS=="Success"));
             then
               cd ~/project/backend
               npm install
               npm run migrations:revert
-            fi 
-            
+            fi           
 jobs:
   build-frontend:
     docker:
@@ -205,7 +204,8 @@ jobs:
               echo "Failure"
               curl -H "Content-Type: text/plain" -H "token: f239cfc4-3bf0-4336-90b3-b83abd234570" --request PUT --data "Failure" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
             fi
-      - destroy-environment     
+      - destroy-environment  
+         
   deploy-frontend:
     docker:
       - image: amazon/aws-cli
