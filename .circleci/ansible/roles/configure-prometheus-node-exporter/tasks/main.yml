@@ -1,6 +1,6 @@
-- name: "create a user for node exporter."
-  shell: |
-    sudo useradd --no-create-home node_exporter
+# - name: "create a user for node exporter."
+#   shell: |
+#     sudo useradd --no-create-home node_exporter
     
 - name: "install node exporter."
   unarchive:
